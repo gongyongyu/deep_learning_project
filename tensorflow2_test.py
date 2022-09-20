@@ -1,6 +1,4 @@
-from cgi import print_directory
 import os
-from pickletools import optimize
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
@@ -104,7 +102,7 @@ class MNISTLoader:
         # MNIST中的图像默认为uint8（0-255的数字）。以下代码将其归一化到0-1之间的浮点数，并在最后增加一维作为颜色通道
         self.train_data = np.expand_dims(self.train_data.astype(np.float32) / 255.0, axis=-1)
         self.test_data = np.expand_dims(self.test_data.astype(np.float32) / 255.0, axis=-1)  # [10000, 28, 28, 1]
-        self.train_label = self.train_label.astype(np.int32)  # [60000]
+        self.train_label = self.train_label.astype(np.int32)  # [60000] 用astype将label转换为int类型
         self.test_label = self.test_label.astype(np.int32)  # [10000]
         self.num_train_data, self.num_test_data = self.train_data.shape[0], self.test_data.shape[0]
 
@@ -115,13 +113,13 @@ class MNISTLoader:
 
 
 class MLP(tf.keras.Model):
-    def __init__(self):
+    def __init__(self):  # 在__init__()函数中初始化每层的策略，即每层使用什么层，全连接还是别的
         super(MLP, self).__init__()
         self.flatten = tf.keras.layers.Flatten()
         self.dense1 = tf.keras.layers.Dense(units=100, activation=tf.nn.relu)
         self.dense2 = tf.keras.layers.Dense(units=10)
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs, training=None, mask=None):  # 在call()函数中定义数据的传输流
         x = self.flatten(inputs)
         x = self.dense1(x)
         x = self.dense2(x)
@@ -136,18 +134,34 @@ learning_rate = 0.001
 
 model = MLP()
 data_loader = MNISTLoader()
-optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)  # 定义优化器，用来更新梯度，这里采用Adam梯度下降法取代SGD
+num_batches = int(data_loader.num_train_data // batch_size * num_epochs)  # //：整除(向小取整)。
+# 这里每个batch要经历5次epoch，因此总共的梯度下降次数为5*batch
 
-num_batches = int(data_loader.num_train_data // batch_size * num_epochs)  # //：整除(向小取整)
-list_batch_index = []
-list_loss = []
 for batch_index in range(num_batches):
     X, y = data_loader.get_batch(batch_size)
     with tf.GradientTape() as tape:
         y_pred = model(X)
+        # 其中 sparse 的含义是，真实的标签值 y_true 可以直接传入 int 类型的标签类别，这里的sparse_categorical_crossentropy已经做了one-hot处理了。
         loss = tf.keras.losses.sparse_categorical_crossentropy(y_true=y, y_pred=y_pred)
+        # 即上面的等价于下面表达
+        '''
+        loss = tf.keras.losses.categorical_crossentropy(
+            y_true=tf.one_hot(y, depth=tf.shape(y_pred)[-1]),
+            y_pred=y_pred
+        )
+        '''
         loss = tf.reduce_mean(loss)
         print("batch %d: loss %f" % (batch_index, loss.numpy()))
 
     grads = tape.gradient(loss, model.variables)
     optimizer.apply_gradients(grads_and_vars=zip(grads, model.variables))
+
+# 在测试集上对训练好的模型进行评估，用tf.keras.metrics中的SparseCategoricalAccuracy评估器
+sparse_categorical_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()      # 实例化一个评估器
+num_batches = int(data_loader.num_test_data // batch_size)
+for batch_index in range(num_batches):
+    start_index, end_index = batch_index * batch_size, (batch_index + 1) * batch_size
+    y_pred = model.predict(data_loader.test_data[start_index: end_index])
+    sparse_categorical_accuracy.update_state(y_true=data_loader.test_label[start_index: end_index], y_pred=y_pred)
+print("test accuracy: %f" % sparse_categorical_accuracy.result())

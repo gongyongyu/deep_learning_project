@@ -1,19 +1,13 @@
 # coding:utf-8
+import math
 
 import numpy as np
 import tensorflow as tf
-
-'''
-a = [1, 2, 3, 4, 5]
-b = [6, 7, 8, 9, 10]
-c = [11, 12, 13, 14, 15]
-d = list(zip(a, b, c))
-print(d)
-
-'''
-# numpy astype test
+from keras.datasets import mnist
+import matplotlib.pyplot as plt
+import pylab
 
 
-print(9//2)
-
-
+label = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+onehot = tf.one_hot(label, depth=10)
+print(onehot)
