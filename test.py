@@ -1,13 +1,15 @@
 # coding:utf-8
 import math
-
-import numpy as np
 import tensorflow as tf
 from keras.datasets import mnist
+
+import numpy as np
 import matplotlib.pyplot as plt
 import pylab
+from PIL import Image
 
-
-label = tf.constant([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-onehot = tf.one_hot(label, depth=10)
-print(onehot)
+img = np.array(Image.open("data_source/5by4_image.png"))
+print(img.shape)
+print(img)
+plt.imshow(img)
+pylab.show()
