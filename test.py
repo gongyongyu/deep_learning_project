@@ -1,15 +1,39 @@
 # coding:utf-8
 import math
-import tensorflow as tf
-from keras.datasets import mnist
 
 import numpy as np
-import matplotlib.pyplot as plt
-import pylab
-from PIL import Image
+import tensorflow as tf
+import argparse
 
-img = np.array(Image.open("data_source/5by4_image.png"))
-print(img.shape)
-print(img)
-plt.imshow(img)
-pylab.show()
+
+class SimpleNet(tf.keras.Model):
+    def __init__(self):
+        super(SimpleNet, self).__init__()
+        self.dense = tf.keras.layers.Dense(
+            units=5,
+            activation=None,
+            use_bias=True,
+            kernel_initializer=tf.zeros_initializer(),
+            bias_initializer=tf.zeros_initializer()
+        )
+
+    def call(self, inputs, training=None, mask=None):
+        return self.dense(inputs)
+
+
+'''
+net = SimpleNet()
+# net.save_weights('easy_checkpoint')
+checkpoint = tf.train.Checkpoint(model=net)
+checkpoint.save('./path')
+'''
+
+
+
+
+
+
+
+
+
+
