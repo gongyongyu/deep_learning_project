@@ -1,0 +1,7 @@
+#超参数配置
+mode : "train"
+num_epoch : 5
+batch_size : 30
+learning_rate : 0.001
+
+

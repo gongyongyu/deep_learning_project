@@ -96,9 +96,8 @@ print("b:" + str(model.variables[1].numpy()))
 
 class MNISTLoader:
     def __init__(self):
-        # mnist = tf.keras.datasets.mnist 这个是从网上下载数据集，我们直接用离线的数据集
-        (self.train_data, self.train_label), (self.test_data, self.test_label) = mnist.load_data(
-            '/data_source/mnist.npz')
+        (self.train_data, self.train_label), (self.test_data, self.test_label) = tf.keras.datasets.mnist.load_data(
+            'C:\\Users\\gongyy\\Desktop\\DNN\\deep_learning_project\\data_source\\mnist.npz')  # 使用离线数据
         # MNIST中的图像默认为uint8（0-255的数字）。以下代码将其归一化到0-1之间的浮点数，并在最后增加一维作为颜色通道
         self.train_data = np.expand_dims(self.train_data.astype(np.float32) / 255.0, axis=-1)
         self.test_data = np.expand_dims(self.test_data.astype(np.float32) / 255.0, axis=-1)  # [10000, 28, 28, 1]
@@ -158,7 +157,7 @@ for batch_index in range(num_batches):
     optimizer.apply_gradients(grads_and_vars=zip(grads, model.variables))
 
 # 在测试集上对训练好的模型进行评估，用tf.keras.metrics中的SparseCategoricalAccuracy评估器
-sparse_categorical_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()      # 实例化一个评估器
+sparse_categorical_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()  # 实例化一个评估器
 num_batches = int(data_loader.num_test_data // batch_size)
 for batch_index in range(num_batches):
     start_index, end_index = batch_index * batch_size, (batch_index + 1) * batch_size
